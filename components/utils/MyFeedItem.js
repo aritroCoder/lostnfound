@@ -49,63 +49,90 @@ export default function FeedItem(props) {
     getImages();
   }, [])
 
-  const foundItem = async () => {
-    firestore()
-      .collection('lostPosts')
-      .doc(props.id)
-      .update({
-        found: true,
-        opened: false
-      })
-      .then(() => {
-        console.log('User updated!');
-        Alert.alert('Item has been marked as found', "The owner of the item will connect to you. Be sure to keep the item safely until then.");
-        props.getPosts();
-      });
-  }
-
-  const claimItem = async () => {
-    firestore()
-      .collection('foundPosts')
-      .doc(props.id)
-      .update({
-        claimed: true,
-        opened: false
-      })
-      .then(() => {
-        console.log('User updated!');
-        Alert.alert('Item has been marked as claimed', "The finder of the item will connect to you. Be sure to contact him in case he fails to connect.");
-        props.getPosts();
-      });
-  }
-
-  const handleFoundClaimAction = () => {
+  const closePost = async () => {
     if(props.found){
+      firestore()
+        .collection('foundPosts')
+        .doc(props.id)
+        .update({
+          opened: false,
+        })
+        .then(() => {
+          console.log('Post updated!');
+          Alert.alert('Item has been marked as closed', "This post will not be visible in public feed and won't be seen by all users");
+          props.getPosts();
+        });
+    }else{
+      firestore()
+        .collection('lostPosts')
+        .doc(props.id)
+        .update({
+          opened: false,
+        })
+        .then(() => {
+          console.log('Post updated!');
+          Alert.alert('Item has been marked as closed', "This post will not be visible in public feed and won't be seen by all users");
+          props.getPosts();
+        });
+    }
+      
+  }
+
+  const openPost = async () => {
+    if(props.found){
+      firestore()
+        .collection('foundPosts')
+        .doc(props.id)
+        .update({
+          opened: true,
+        })
+        .then(() => {
+          console.log('Post updated!');
+          Alert.alert('Item has been marked as opened', "This post will be visible in public feed and can be seen by all users");
+          props.getPosts();
+        });
+    }else{
+      firestore()
+        .collection('lostPosts')
+        .doc(props.id)
+        .update({
+          opened: true,
+        })
+        .then(() => {
+          console.log('Post updated!');
+          Alert.alert('Item has been marked as opened', "This post will be visible in public feed and can be seen by all users");
+          props.getPosts();
+        });
+    }
+  }
+
+  const handleCloseOpenPost = () => {
+    if(props.opened){
       Alert.alert(
-        "Mark as claimed",
-        "Are you sure you want to mark this item as claimed?",
+        "Mark as closed",
+        "Are you sure you want to mark this item as closed?",
         [
           {
             text: "Cancel",
             onPress: () => console.log("Cancel Pressed"),
             style: "cancel"
           },
-          { text: "OK", onPress: () => claimItem() }
+          { text: "OK", onPress: () => closePost() }
         ],
         { cancelable: false }
       );
       
     }else{
       Alert.alert(
-        "Mark as found",
-        "Are you sure you want to mark this item as found?",
+        "Mark as open",
+        "Are you sure you want to reopen this post to be visible in public?",
         [
           {
             text: "Cancel",
             onPress: () => console.log("Cancel Pressed"),
             style: "cancel"
           },
-          { text: "OK", onPress: () => foundItem() }
+          { text: "OK", onPress: () => openPost() }
         ],
         { cancelable: false }
       );
@@ -140,8 +167,8 @@ export default function FeedItem(props) {
           {props.details}
         </Text>
       </View>
-      <Pressable android_ripple={{ color: '#0c285e' }} style={styles.button} onPress={() => handleFoundClaimAction()}>
-        <Text style={styles.buttonText}>{props.found?"Claim":"I found it!"}</Text>
+      <Pressable android_ripple={{ color: '#0c285e' }} style={styles.button} onPress={() => handleCloseOpenPost()}>
+        <Text style={styles.buttonText}>{props.opened?"Close Post":"Reopen Post"}</Text>
       </Pressable>
     </View>
   );

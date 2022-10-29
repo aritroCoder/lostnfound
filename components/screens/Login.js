@@ -1,8 +1,6 @@
 import * as React from 'react';
 import { View, Text, StyleSheet, TextInput, Pressable, ActivityIndicator, Alert } from 'react-native';
-import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
-import { app } from '../../configs/firebase.config';
-
+import auth from '@react-native-firebase/auth';
 //login page 
 export default function HomeScreen({ navigation }) {
 
@@ -10,25 +8,30 @@ export default function HomeScreen({ navigation }) {
     const [password, setPassword] = React.useState('');
     const [loggingIn, setLoggingIn] = React.useState(false);
 
-    const handleAuth = async () => {
-        try {
-            setLoggingIn(true);
-            const auth = getAuth(app);
-            const userCredential = await signInWithEmailAndPassword(auth, email, password);
-            console.log(userCredential);
-            onAuthStateChanged(auth, (user) => {
-                if (user && user.emailVerified) {
-                    // Alert.alert('Logged In', 'You have been logged in successfully');
-                    navigation.navigate("Lost Feed");
-                } else {
-                    Alert.alert('Error', 'There was an error logging you in. Check if you have created your account and verified email');
-                }
-            });
-        } catch (error) {
-            console.log(error);
-            Alert.alert('Error', error.message);
+    React.useEffect(() => {
+        if (loggingIn){
+            handleAuth()
+                        .then(() => {
+                            setLoggingIn(false);
+                        })
         }
-        setLoggingIn(false);
+    }, [loggingIn])
+
+    const handleAuth = async () => {
+        auth()
+            .signInWithEmailAndPassword(email, password)
+            .then(() => {
+                auth().onAuthStateChanged((user) => {
+                    if (user) {
+                        // console.log(user.emailVerified);
+                        if(user.emailVerified) navigation.navigate('Feed');
+                        else Alert.alert('Your email is not verified', "Please check your email for a verification link sent during sign up and verify this email");
+                    }
+                  });
+            })
+            .catch(error => {
+                Alert.alert(error.message);
+            });
     }
 
     return (
@@ -42,7 +45,7 @@ export default function HomeScreen({ navigation }) {
                 <Text style={styles.text}>Password: </Text>
                 <TextInput style={styles.input} onChangeText={(text) => setPassword(text)} secureTextEntry placeholder="Password" />
             </View>
-            <Pressable style={styles.button} onPress={() => handleAuth()}>
+            <Pressable android_ripple={{ color: '#3164b5' }} style={styles.button} onPress={() => setLoggingIn(true)}>
                 <Text style={styles.buttonText}>{loggingIn ? <ActivityIndicator /> : "Login"}</Text>
             </Pressable>
             <Text style={{ color: 'black' }}>Don't have an account?</Text><Pressable onPress={() => navigation.navigate("Signup - Lost&Found")}><Text style={{ color: 'black' }}>Create account</Text></Pressable>

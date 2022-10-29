@@ -5,59 +5,77 @@ import {
   StyleSheet,
   ScrollView,
   View,
+  RefreshControl
 } from 'react-native';
-import {collection, getDocs} from 'firebase/firestore';
-import {getAuth, onAuthStateChanged} from 'firebase/auth';
+import firestore from '@react-native-firebase/firestore';
 
 // Custom Components
 import FeedItem from '../utils/FeedItem';
 import PlusBtn from '../../components/utils/Plusbtn';
-import {db} from '../../configs/firebase.config';
 import Pressable from 'react-native/Libraries/Components/Pressable/Pressable';
+import UserBtn from '../../components/utils/UserBtn';
 
-export default function LostFeed({navigation}) {
+const wait = (timeout) => {
+  return new Promise(resolve => setTimeout(resolve, timeout));
+}
+
+export default function LostFeed({ navigation }) {
   const [posts, setPosts] = React.useState([]);
   const [fetching, setFetching] = React.useState(false);
+  const [refreshing, setRefreshing] = React.useState(false);
 
-  //get current user
-  const auth = getAuth();
-  onAuthStateChanged(auth, user => {
-    if (user) {
-      uid = user.uid;
-    } else {
-      // No user is signed in.
-    }
-  });
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    getPosts().then(() => setRefreshing(false));
+  }, []);
 
-  const getData = async () => {
-    console.log('fetching posts...');
+  const getPosts = async () => {
     setFetching(true);
     try {
-      const lostCollectionRef = collection(db, 'lostPosts');
-      const docSnap = await getDocs(lostCollectionRef);
-      console.log('fetched posts');
-      let tempPosts = [];
-      docSnap.forEach(doc => {
-        // doc.data() is never undefined for query doc snapshots
-        tempPosts.push({...doc.data(), id: doc.id});
-      });
-      setPosts(tempPosts);
-
-      setFetching(false);
+      firestore()
+        .collection('lostPosts')
+        .get()
+        .then((querySnapshot) => {
+          const posts = [];
+          querySnapshot.forEach((documentSnapshot) => {
+            // console.log(documentSnapshot.data());
+            if (documentSnapshot.data().opened) {
+              posts.push({
+                details: documentSnapshot.data().details,
+                name: documentSnapshot.data().name,
+                item: documentSnapshot.data().item,
+                location: documentSnapshot.data().location,
+                phone: documentSnapshot.data().phone,
+                uid: documentSnapshot.data().uid,
+                date: documentSnapshot.data().date.toDate().toString(),
+                id: documentSnapshot.id,
+              });
+            }
+          });
+          setPosts(posts);
+          setFetching(false);
+        });
     } catch (err) {
-      console.log(err);
-      getData();
+      Alert.alert(err.message);
+      setFetching(false);
     }
-  };
+  }
 
   React.useEffect(() => {
-    getData();
+
+    getPosts();
   }, []);
 
   return (
     <>
-      <PlusBtn navigator={navigation} />
-      <ScrollView style={styles.container}>
+      <PlusBtn navigator={navigation} found={false} />
+      <UserBtn navigator={navigation} />
+      <ScrollView style={styles.container} refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+        />
+      }>
         <Text style={styles.title}>Lost Feed</Text>
 
         {!fetching ? (
@@ -72,8 +90,10 @@ export default function LostFeed({navigation}) {
                 name={post.name}
                 phone={post.phone}
                 key={index}
-                uid={post.user}
+                uid={post.uid}
                 id={post.id}
+                getPosts={getPosts}
+                found={false}
               />
             );
           })
@@ -85,14 +105,14 @@ export default function LostFeed({navigation}) {
 
         {posts.length === 0 ? (
           <View>
-            <Text style={{textAlign: 'center', marginTop: 20}}>
+            <Text style={{ textAlign: 'center', marginTop: 20 }}>
               No posts found
             </Text>
             <Pressable
-              style={{marginLeft: '30%', width: '40%', padding: 10}}
-              android_ripple={{color: '#2b2a24'}}
-              onPress={() => getData()}>
-              <Text style={{textAlign: 'center'}}>Reload...</Text>
+              style={{ marginLeft: '30%', width: '40%', padding: 10 }}
+              android_ripple={{ color: '#2b2a24' }}
+              onPress={() => getPosts()}>
+              <Text style={{ textAlign: 'center' }}>Reload...</Text>
             </Pressable>
           </View>
         ) : null}

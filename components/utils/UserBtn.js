@@ -2,17 +2,17 @@ import React from 'react';
 import {
     Text,
     StyleSheet,
+    Image
 } from 'react-native';
 import Pressable from 'react-native/Libraries/Components/Pressable/Pressable';
 
-const Plusbtn = (props) => {
+const UserBtn = (props) => {
     const handleClick=()=>{
-        if(props.found) props.navigator.navigate('Post for Found Item');
-        else props.navigator.navigate('Post for Lost Item');
+        props.navigator.navigate('User Feed');
     }
     return (
-        <Pressable onPress={()=>handleClick()} android_ripple={{ color: '#A64B2A' }} style={{ ...styles.plus, top: '80%' }}>
-            <Text style={styles.text}>+</Text>
+        <Pressable onPress={()=>handleClick()} android_ripple={{ color: '#A64B2A' }} style={{ ...styles.plus, top: '70%' }}>
+            <Image source={{ uri: 'https://cdn-icons-png.flaticon.com/512/149/149071.png', width: 50, height: 50 }}/>
         </Pressable>
     )
 }
@@ -43,4 +43,4 @@ const styles = StyleSheet.create({
     }
 })
 
-export default Plusbtn
+export default UserBtn;

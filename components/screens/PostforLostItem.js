@@ -9,43 +9,18 @@ import {
     ScrollView,
     Alert,
 } from 'react-native';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { collection, addDoc } from 'firebase/firestore';
-import { ref, uploadBytes, uploadString } from 'firebase/storage';
 import ImagePicker from 'react-native-image-crop-picker';
 import 'react-native-get-random-values';
 import { v4 } from 'uuid';
 import DatePicker from 'react-native-date-picker';
+import firestore from '@react-native-firebase/firestore';
+import auth from '@react-native-firebase/auth';
+import storage from '@react-native-firebase/storage';
 
-import { storage, db } from '../../configs/firebase.config';
-
+// unused function
 function get_url_extension(url) {
     return url.split(/[#?]/)[0].split('.').pop().trim();
 }
-
-function decodeFromBase64(input) {
-    input = input.replace(/\s/g, '');
-    return input;
-}
-
-function dataURItoBlob(dataURI) {
-    if(typeof dataURI !== 'string'){
-        throw new Error('Invalid argument: dataURI must be a string');
-    }
-    dataURI = dataURI.split(',');
-    var type = dataURI[0].split(':')[1].split(';')[0],
-        byteString = atob(dataURI[1]),
-        byteStringLength = byteString.length,
-        arrayBuffer = new ArrayBuffer(byteStringLength),
-        intArray = new Uint8Array(arrayBuffer);
-    for (var i = 0; i < byteStringLength; i++) {
-        intArray[i] = byteString.charCodeAt(i);
-    }
-    return new Blob([intArray], {
-        type: type
-    });
-  
-  }
 
 export default function PostforLostItem() {
     const [name, setName] = React.useState('');
@@ -53,62 +28,58 @@ export default function PostforLostItem() {
     const [phone, setPhone] = React.useState('');
     const [location, setLocation] = React.useState('');
     const [details, setDetails] = React.useState('');
-    const lostCollectionRef = collection(db, 'lostPosts');
     const [posting, setPosting] = React.useState(false);
     const [imageList, setImageList] = React.useState([]);
     const [date, setDate] = React.useState(new Date());
 
-    let uid;
-
-    const auth = getAuth();
-    onAuthStateChanged(auth, user => {
-        if (user) {
-            uid = user.uid;
-        } else {
-            // No user is signed in.
-        }
-    });
+    React.useEffect(() => {
+        setImageList([]);
+        auth().onAuthStateChanged((user) => {
+            if (user) {
+              setName(user.displayName);
+              console.log(user)
+            }
+        });
+    },[])
 
     const handlePress = async () => {
-        try {
-            setPosting(true);
-            if (!name || !item || !phone || !location || !details || !date) {
-                Alert.alert('Please fill all the fields');
-                setPosting(false);
-                return;
+        setPosting(true);
+        let uid;
+        auth().onAuthStateChanged(async (user) => {
+            
+            try {
+                if (user) {
+                uid = user.uid;
+                let postID;
+                await firestore()
+                    .collection('lostPosts')
+                    .add({
+                        name,
+                        item,
+                        phone,
+                        location,
+                        details,
+                        date,
+                        uid,
+                        found: false,
+                        opened: true
+                    })
+                    .then((docRef) => {
+                        postID = docRef.id;
+                    })
+                    imageList.forEach(async (image) => {
+                        console.log({image});
+                        const imgRef = storage().ref(`lostitems/${uid}/${postID}/${v4()}`);
+                        await imgRef.putFile(image);
+                    });
+
+                Alert.alert('Post added!');
             }
-            // Add a new document in collection "lostPosts"
-            let newDocRef = await addDoc(lostCollectionRef, {
-                name: name,
-                item: item,
-                phone: phone,
-                location: location,
-                details: details,
-                date: date.toDateString(),
-                user: uid,
-                found: false,
-            });
-
-            imageList.forEach(image => {
-                const storageRef = ref(
-                    storage,
-                    `lostposts/${uid}/${newDocRef.id}/${v4()}.jpg`,
-                );               
-                
-                console.log("data:image/jpeg;base64,"+image);
-                uploadString(storageRef, image, 'base64', { contentType: 'image/jpeg' }).then(
-                    snapshot => {
-                        console.log('Uploaded a blob or file!');
-                    },
-                );
-            });
-
-            Alert.alert('Success', 'Your post is successfully added');
-        } catch (e) {
-            Alert.alert('Error', e.message);
-            console.log(e.message);
+        } catch (err){
+            Alert.alert(err.message);
         }
-
+    });
+    
         setPosting(false);
     };
 
@@ -118,14 +89,11 @@ export default function PostforLostItem() {
             height: 780,
             cropping: true,
             multiple: true,
-            includeBase64: true,
         }).then(images => {
             let tempList = [];
             images.forEach(image => {
                 imageURI = Platform.OS === 'ios' ? image.sourceURL : image.path;
-                imageData = image.data;
-                // console.log(imageData);
-                tempList = [...tempList, imageData];
+                tempList = [...tempList, imageURI];
                 console.log(imageURI);
             });
             setImageList([...imageList, ...tempList]);
@@ -142,6 +110,7 @@ export default function PostforLostItem() {
                     style={styles.input}
                     placeholder="Name"
                     onChangeText={text => setName(text)}
+                    defaultValue={name}
                 />
             </View>
             <View style={styles.inputGrid}>
@@ -183,10 +152,10 @@ export default function PostforLostItem() {
                 <DatePicker date={date} onDateChange={setDate} />
             </View>
             <Pressable style={styles.button} onPress={() => choosePhotoFromLibrary()}>
-                <Text style={styles.buttonText}>Add Photos</Text>
+                <Text style={styles.buttonText}>Add Photos (max 5)</Text>
             </Pressable>
             <Text style={styles.imageText}>{imageList.length} images selected</Text>
-            <Pressable style={styles.button} onPress={() => handlePress()}>
+            <Pressable style={styles.button} android_ripple={{color: '#4a4848'}} onPress={() => handlePress()}>
                 <Text style={styles.buttonText}>
                     {posting ? <ActivityIndicator /> : 'Post'}
                 </Text>
