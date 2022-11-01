@@ -45,6 +45,7 @@ export default function LostFeed({ navigation }) {
                 item: documentSnapshot.data().item,
                 location: documentSnapshot.data().location,
                 phone: documentSnapshot.data().phone,
+                email: documentSnapshot.data().email,
                 uid: documentSnapshot.data().uid,
                 date: documentSnapshot.data().date.toDate().toString(),
                 id: documentSnapshot.id,
@@ -88,6 +89,7 @@ export default function LostFeed({ navigation }) {
                 name={post.name}
                 phone={post.phone}
                 key={index}
+                email={post.email}
                 uid={post.uid}
                 id={post.id}
                 getPosts={getPosts}
@@ -122,9 +124,10 @@ export default function LostFeed({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#f2f2d0'
   },
   title: {
-    color: 'black',
+    color: '#61764B',
     fontSize: 30,
     textAlign: 'center',
     margin: 10,

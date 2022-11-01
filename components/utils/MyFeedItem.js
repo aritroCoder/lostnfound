@@ -23,26 +23,26 @@ export default function FeedItem(props) {
 
   React.useEffect(() => {
     const getImages = async () => {
-      if(props.found){
+      if (props.found) {
         storage().ref(`founditems/${props.uid}/${props.id}`).list()
-        .then((res) => {
-          res.items.forEach((imageRef) => {
-            imageRef.getDownloadURL()
-              .then((url) => {
-                setImages((prev) => [...prev, url]);
-              })
-          });
-        })
-      }else{
+          .then((res) => {
+            res.items.forEach((imageRef) => {
+              imageRef.getDownloadURL()
+                .then((url) => {
+                  setImages((prev) => [...prev, url]);
+                })
+            });
+          })
+      } else {
         storage().ref(`lostitems/${props.uid}/${props.id}`).list()
-        .then((res) => {
-          res.items.forEach((imageRef) => {
-            imageRef.getDownloadURL()
-              .then((url) => {
-                setImages((prev) => [...prev, url]);
-              })
-          });
-        })
+          .then((res) => {
+            res.items.forEach((imageRef) => {
+              imageRef.getDownloadURL()
+                .then((url) => {
+                  setImages((prev) => [...prev, url]);
+                })
+            });
+          })
       }
     }
 
@@ -50,7 +50,7 @@ export default function FeedItem(props) {
   }, [])
 
   const closePost = async () => {
-    if(props.found){
+    if (props.found) {
       firestore()
         .collection('foundPosts')
         .doc(props.id)
@@ -62,7 +62,7 @@ export default function FeedItem(props) {
           Alert.alert('Item has been marked as closed', "This post will not be visible in public feed and won't be seen by all users");
           props.getPosts();
         });
-    }else{
+    } else {
       firestore()
         .collection('lostPosts')
         .doc(props.id)
@@ -75,11 +75,11 @@ export default function FeedItem(props) {
           props.getPosts();
         });
     }
-      
+
   }
 
   const openPost = async () => {
-    if(props.found){
+    if (props.found) {
       firestore()
         .collection('foundPosts')
         .doc(props.id)
@@ -91,7 +91,7 @@ export default function FeedItem(props) {
           Alert.alert('Item has been marked as opened', "This post will be visible in public feed and can be seen by all users");
           props.getPosts();
         });
-    }else{
+    } else {
       firestore()
         .collection('lostPosts')
         .doc(props.id)
@@ -107,7 +107,7 @@ export default function FeedItem(props) {
   }
 
   const handleCloseOpenPost = () => {
-    if(props.opened){
+    if (props.opened) {
       Alert.alert(
         "Mark as closed",
         "Are you sure you want to mark this item as closed?",
@@ -121,8 +121,8 @@ export default function FeedItem(props) {
         ],
         { cancelable: false }
       );
-      
-    }else{
+
+    } else {
       Alert.alert(
         "Mark as open",
         "Are you sure you want to reopen this post to be visible in public?",
@@ -137,22 +137,24 @@ export default function FeedItem(props) {
         { cancelable: false }
       );
     }
-    }
-  
+  }
+
 
   return (
     <View style={styles.lostEntry}>
-      <ScrollView pagingEnabled horizontal style={styles.imgGrid}>
-
-        {images.length > 0
-          &&
-          // console.log(images)
-          images.map((image, index) => (
-            <Image style={styles.image} source={{ uri: image, width: 330, height: 250 }} key={index} />
-          ))
-        }
-
-      </ScrollView>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+        <Text style={{ fontSize: 17, fontWeight: 'bold', color: '#61764B' }}>{images.length > 1 ? "<" : ""}</Text>
+        <ScrollView pagingEnabled horizontal style={styles.imgGrid}>
+          {images.length > 0
+            &&
+            // console.log(images)
+            images.map((image, index) => (
+              <Image style={styles.image} source={{ uri: image, width: 330, height: 250 }} key={index} />
+            ))
+          }
+        </ScrollView>
+        <Text style={{ fontSize: 17, fontWeight: 'bold', color: '#61764B' }}>{images.length > 1 ? ">" : ""}</Text>
+      </View>
       <View style={styles.inputGrid}>
         <Text style={styles.text}>Item Name: {props.item}</Text>
         <Text style={styles.subtext}>
@@ -168,7 +170,7 @@ export default function FeedItem(props) {
         </Text>
       </View>
       <Pressable android_ripple={{ color: '#0c285e' }} style={styles.button} onPress={() => handleCloseOpenPost()}>
-        <Text style={styles.buttonText}>{props.opened?"Close Post":"Reopen Post"}</Text>
+        <Text style={styles.buttonText}>{props.opened ? "Close Post" : "Reopen Post"}</Text>
       </Pressable>
     </View>
   );
@@ -181,8 +183,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     margin: 10,
     padding: 10,
-    borderWidth: 1,
+    // borderWidth: 1,
     borderRadius: 10,
+    backgroundColor: '#C8DBBE'
   },
   inputGrid: {
     flexDirection: 'column',
@@ -211,16 +214,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 12,
     paddingHorizontal: 32,
-    borderRadius: 4,
+    borderRadius: 15,
     elevation: 3,
-    backgroundColor: '#2196F3',
+    backgroundColor: '#61764B',
+    margin: 10,
   },
   buttonText: {
-    fontSize: 16,
-    lineHeight: 21,
-    fontWeight: 'bold',
-    letterSpacing: 0.25,
-    color: 'white',
+    color: '#F8FFDB',
+    fontSize: 15
   },
   image: {
     margin: 10,

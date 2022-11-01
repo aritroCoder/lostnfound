@@ -8,6 +8,7 @@ import {
     Pressable,
     ScrollView,
     Alert,
+    ToastAndroid
 } from 'react-native';
 import ImagePicker from 'react-native-image-crop-picker';
 import 'react-native-get-random-values';
@@ -25,6 +26,7 @@ function get_url_extension(url) {
 export default function PostforLostItem() {
     const [name, setName] = React.useState('');
     const [item, setItem] = React.useState('');
+    const [email, setEmail] = React.useState('');
     const [phone, setPhone] = React.useState('');
     const [location, setLocation] = React.useState('');
     const [details, setDetails] = React.useState('');
@@ -36,50 +38,60 @@ export default function PostforLostItem() {
         setImageList([]);
         auth().onAuthStateChanged((user) => {
             if (user) {
-              setName(user.displayName);
-              console.log(user)
+                setName(user.displayName);
+                setEmail(user.email);
+                firestore().collection('users').doc(user.uid).get()
+                    .then((doc) => {
+                        if (doc.exists) {
+                            console.log(doc.data());
+                            setPhone(doc.data().phone);
+                        }
+                    })
+                console.log(user)
             }
         });
-    },[])
+    }, [])
 
     const handlePress = async () => {
+        if (name === '' || item === '' || phone === '' || location === '' || details === '' || posting === '') return ToastAndroid.show("Fill in the fields properly!", ToastAndroid.SHORT);
+        if (imageList.length > 5) return ToastAndroid.show("Select no more than 5 images", ToastAndroid.SHORT)
         setPosting(true);
         let uid;
         auth().onAuthStateChanged(async (user) => {
-            
             try {
                 if (user) {
-                uid = user.uid;
-                let postID;
-                await firestore()
-                    .collection('lostPosts')
-                    .add({
-                        name,
-                        item,
-                        phone,
-                        location,
-                        details,
-                        date,
-                        uid,
-                        found: false,
-                        opened: true
-                    })
-                    .then((docRef) => {
-                        postID = docRef.id;
-                    })
+                    uid = user.uid;
+                    let postID;
+                    await firestore()
+                        .collection('lostPosts')
+                        .add({
+                            name,
+                            item,
+                            phone,
+                            location,
+                            details,
+                            date,
+                            email,
+                            uid,
+                            found: false,
+                            opened: true
+                        })
+                        .then((docRef) => {
+                            postID = docRef.id;
+                        })
                     imageList.forEach(async (image) => {
-                        console.log({image});
+                        console.log({ image });
                         const imgRef = storage().ref(`lostitems/${uid}/${postID}/${v4()}`);
                         await imgRef.putFile(image);
                     });
 
-                Alert.alert('Post added!');
+                    Alert.alert('Post added!');
+                }
+            } catch (err) {
+                Alert.alert(err.message);
             }
-        } catch (err){
-            Alert.alert(err.message);
-        }
-    });
-    
+        });
+
         setPosting(false);
     };
 
@@ -128,6 +140,7 @@ export default function PostforLostItem() {
                     keyboardType="phone-pad"
                     placeholder="Phone"
                     onChangeText={text => setPhone(text)}
+                    defaultValue={phone}
                 />
             </View>
             <View style={styles.inputGrid}>
@@ -155,7 +168,7 @@ export default function PostforLostItem() {
                 <Text style={styles.buttonText}>Add Photos (max 5)</Text>
             </Pressable>
             <Text style={styles.imageText}>{imageList.length} images selected</Text>
-            <Pressable style={styles.button} android_ripple={{color: '#4a4848'}} onPress={() => handlePress()}>
+            <Pressable style={styles.button} android_ripple={{ color: '#4a4848' }} onPress={() => handlePress()}>
                 <Text style={styles.buttonText}>
                     {posting ? <ActivityIndicator /> : 'Post'}
                 </Text>
@@ -186,6 +199,8 @@ const styles = StyleSheet.create({
         margin: 12,
         borderWidth: 1,
         padding: 10,
+        borderRadius: 25,
+        backgroundColor: '#EAEAEA'
     },
     multiLineImput: {
         height: 100,
@@ -193,20 +208,21 @@ const styles = StyleSheet.create({
         margin: 12,
         borderWidth: 1,
         padding: 10,
+        borderRadius: 25,
+        backgroundColor: '#EAEAEA'
     },
     button: {
         alignItems: 'center',
         justifyContent: 'center',
         paddingVertical: 12,
-        margin: 10,
-        backgroundColor: 'black',
-        borderRadius: 4,
+        paddingHorizontal: 32,
+        borderRadius: 15,
         elevation: 3,
+        backgroundColor: '#61764B',
+        margin: 10,
     },
     buttonText: {
-        color: 'white',
-        fontSize: 20,
-        textAlign: 'center',
+        color: '#F8FFDB'
     },
     imageText: {
         marginLeft: 30,

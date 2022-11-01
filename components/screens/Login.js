@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { View, Text, StyleSheet, TextInput, Pressable, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, TextInput, Pressable, ActivityIndicator, Alert, ToastAndroid } from 'react-native';
 import auth from '@react-native-firebase/auth';
 //login page 
 export default function HomeScreen({ navigation }) {
@@ -9,28 +9,38 @@ export default function HomeScreen({ navigation }) {
     const [loggingIn, setLoggingIn] = React.useState(false);
 
     React.useEffect(() => {
-        if (loggingIn){
+        if (loggingIn) {
             handleAuth()
-                        .then(() => {
-                            setLoggingIn(false);
-                        })
+                .then(() => {
+                    setLoggingIn(false);
+                })
         }
     }, [loggingIn])
 
     const handleAuth = async () => {
+        if (email === '' || password === '') { return ToastAndroid.show("Please enter your email and password", ToastAndroid.SHORT); }
         auth()
             .signInWithEmailAndPassword(email, password)
             .then(() => {
                 auth().onAuthStateChanged((user) => {
                     if (user) {
                         // console.log(user.emailVerified);
-                        if(user.emailVerified) navigation.navigate('Feed');
+                        if (user.emailVerified) navigation.navigate('Feed');
                         else Alert.alert('Your email is not verified', "Please check your email for a verification link sent during sign up and verify this email");
                     }
-                  });
+                });
             })
             .catch(error => {
-                Alert.alert(error.message);
+                Alert.alert("Error", error.message);
+            });
+    }
+
+    const forgotPassword = async () => {
+        if (email === '') return ToastAndroid.show("Please enter your webmail and press forgot password", ToastAndroid.SHORT);
+        auth()
+            .sendPasswordResetEmail(email)
+            .then(() => {
+                Alert.alert("Password Reset", "A password reset email has been sent to your email address");
             });
     }
 
@@ -45,10 +55,11 @@ export default function HomeScreen({ navigation }) {
                 <Text style={styles.text}>Password: </Text>
                 <TextInput style={styles.input} onChangeText={(text) => setPassword(text)} secureTextEntry placeholder="Password" />
             </View>
-            <Pressable android_ripple={{ color: '#3164b5' }} style={styles.button} onPress={() => setLoggingIn(true)}>
+            <Pressable android_ripple={{ color: '#9BA17B' }} style={styles.button} onPress={() => setLoggingIn(true)}>
                 <Text style={styles.buttonText}>{loggingIn ? <ActivityIndicator /> : "Login"}</Text>
             </Pressable>
-            <Text style={{ color: 'black' }}>Don't have an account?</Text><Pressable onPress={() => navigation.navigate("Signup - Lost&Found")}><Text style={{ color: 'black' }}>Create account</Text></Pressable>
+            <Pressable style={{ marginHorizontal: 10, paddingVertical: 5 }} android_ripple={{ color: '#615e57' }} onPress={() => forgotPassword()}><Text style={{ textAlign: "center" }}>Forgot Password?</Text></Pressable>
+            <Text style={{ ...styles.lowerText, color: 'black' }}>Don't have an account?</Text><Pressable style={styles.button} android_ripple={{ color: '#615e57' }} onPress={() => navigation.navigate("Signup - Lost&Found")}><Text style={{ ...styles.lowerText, color: '#F8FFDB' }}>Create account</Text></Pressable>
         </View>
     );
 }
@@ -69,6 +80,8 @@ const styles = StyleSheet.create({
         margin: 12,
         borderWidth: 1,
         padding: 10,
+        borderRadius: 25,
+        backgroundColor: '#EAEAEA'
     },
     title: {
         color: 'black',
@@ -87,9 +100,17 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         paddingVertical: 12,
         paddingHorizontal: 32,
-        borderRadius: 4,
+        borderRadius: 15,
         elevation: 3,
-        backgroundColor: '#2196F3',
+        backgroundColor: '#61764B',
         margin: 10,
+    },
+    buttonText: {
+        color: '#F8FFDB'
+    },
+    lowerText: {
+        marginLeft: 15,
+        marginRight: 15,
+        padding: 5
     },
 });

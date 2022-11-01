@@ -23,10 +23,10 @@ export default function UpdatePassword({ navigation }) {
     return (
         <View style={styles.container}>
             <Text style={styles.title}>Update Password / Log Out</Text>
-            <Pressable style={styles.button} android_ripple={{ color: '#54514a'}} onPress={()=>handlePasswordReset()}>
+            <Pressable style={styles.button} android_ripple={{ color: '#82CD47'}} onPress={()=>handlePasswordReset()}>
                 <Text style={styles.buttonText}>Update Password</Text>
             </Pressable>
-            <Pressable style={styles.Logout} android_ripple={{ color: '#5c0303' }} onPress={()=>handleLogOut()}>
+            <Pressable style={styles.Logout} android_ripple={{ color: '#82CD47' }} onPress={()=>handleLogOut()}>
                 <Text style={styles.logOutText}>Log Out</Text>
             </Pressable>
         </View>
@@ -57,24 +57,25 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         paddingVertical: 12,
         paddingHorizontal: 32,
-        borderRadius: 4,
-        elevation: 3,
+        borderRadius: 15,
+        // elevation: 3,
+        backgroundColor: '#9BA17B',
     },
     buttonText: {
         fontSize: 20,
         lineHeight: 21,
         fontWeight: 'bold',
         letterSpacing: 0.25,
-        color: '#000000',
+        color: '#F8FFDB'
     },
     Logout: {
         marginTop: 15,
-        backgroundColor: '#ff0000',
+        backgroundColor: '#61764B',
         alignItems: 'center',
         justifyContent: 'center',
         paddingVertical: 12,
         paddingHorizontal: 32,
-        borderRadius: 4,
+        borderRadius: 15,
         elevation: 3,
     },
     logOutText: {
@@ -82,6 +83,6 @@ const styles = StyleSheet.create({
         lineHeight: 21,
         fontWeight: 'bold',
         letterSpacing: 0.25,
-        color: '#fff',
+        color: '#F8FFDB'
     }
 });

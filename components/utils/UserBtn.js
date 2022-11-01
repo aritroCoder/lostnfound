@@ -5,14 +5,25 @@ import {
     Image
 } from 'react-native';
 import Pressable from 'react-native/Libraries/Components/Pressable/Pressable';
+import auth from '@react-native-firebase/auth';
 
 const UserBtn = (props) => {
+    const [image, setImage] = React.useState(null);
+
+    React.useEffect(() => {
+        auth().onAuthStateChanged((user) => {
+            if (user) {
+                setImage(user.photoURL);
+                console.log(user);
+            }
+        })
+    }, [])
     const handleClick=()=>{
         props.navigator.navigate('User Feed');
     }
     return (
         <Pressable onPress={()=>handleClick()} android_ripple={{ color: '#A64B2A' }} style={{ ...styles.plus, top: '70%' }}>
-            <Image source={{ uri: 'https://cdn-icons-png.flaticon.com/512/149/149071.png', width: 50, height: 50 }}/>
+            <Image style={{borderRadius: 25}} source={{ uri: image, width: 50, height: 50 }}/>
         </Pressable>
     )
 }

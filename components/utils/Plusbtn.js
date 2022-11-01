@@ -11,7 +11,7 @@ const Plusbtn = (props) => {
         else props.navigator.navigate('Post for Lost Item');
     }
     return (
-        <Pressable onPress={()=>handleClick()} android_ripple={{ color: '#A64B2A' }} style={{ ...styles.plus, top: '80%' }}>
+        <Pressable onPress={()=>handleClick()} android_ripple={{ color: '#9BA17B' }} style={{ ...styles.plus, top: '80%' }}>
             <Text style={styles.text}>+</Text>
         </Pressable>
     )
@@ -23,7 +23,7 @@ const styles = StyleSheet.create({
         position: 'absolute',
         textAlign: 'center',
         textAlignVertical: 'center',
-        backgroundColor: '#FFD369',
+        backgroundColor: '#61764B',
         height: 50,
         width: 50,
         borderRadius: 25,
@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
         zIndex: 5
     },
     text: {
-        color: '#000',
+        color: '#F8FFDB',
         textAlign: 'center',
         textAlignVertical: 'center',
         height: 50,

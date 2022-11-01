@@ -128,6 +128,7 @@ export default function MyPosts() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        backgroundColor: '#f2f2d0'
     },
     title: {
         color: 'black',
